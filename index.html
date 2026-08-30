@@ -104,6 +104,26 @@
     display:flex;flex-direction:column;overflow:hidden;
   }
   .day-col.is-today{border-color:var(--coral);box-shadow:0 0 0 2px rgba(221,106,66,0.15);}
+  .day-col.is-full{border-color:var(--red);}
+  .day-col.is-full .day-head{background:var(--red-light);}
+  .full-badge{
+    display:inline-block;margin-top:3px;font-size:10.5px;font-weight:700;
+    color:var(--red);text-transform:uppercase;letter-spacing:.04em;
+  }
+  .day-head{position:relative;}
+  .day-edit-limits{
+    position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;
+    color:var(--slate);padding:3px;border-radius:6px;line-height:0;
+  }
+  .day-edit-limits:hover{background:rgba(0,0,0,0.06);color:var(--teal-deep);}
+  .day-edit-limits svg{width:14px;height:14px;display:block;}
+  .type-limits{display:flex;flex-direction:column;gap:3px;margin-top:6px;}
+  .type-chip{
+    font-size:11px;font-weight:600;color:var(--slate);
+    display:flex;justify-content:space-between;gap:8px;
+  }
+  .type-chip.chip-full{color:var(--red);}
+  .type-chip .dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;flex-shrink:0;}
   .day-head{
     padding:12px 14px 10px;border-bottom:1px solid var(--border);
     background:var(--teal-light);
@@ -201,10 +221,16 @@
         <p>Painel da recepção · organizado por dia da semana</p>
       </div>
     </div>
-    <button class="btn btn-primary" onclick="openModal()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5V19M5 12H19" stroke="white" stroke-width="2.2" stroke-linecap="round"/></svg>
-      Novo agendamento
-    </button>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" onclick="openSettings()" title="Configurações">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="1.5"/></svg>
+        Configurações
+      </button>
+      <button class="btn btn-primary" onclick="openModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5V19M5 12H19" stroke="white" stroke-width="2.2" stroke-linecap="round"/></svg>
+        Novo agendamento
+      </button>
+    </div>
   </div>
 
   <div class="controls">
@@ -239,6 +265,45 @@
   <div class="week-grid" id="weekGrid"></div>
 
   <footer>Os dados ficam salvos neste navegador (armazenamento local do dispositivo).</footer>
+</div>
+
+<div class="overlay" id="settingsOverlay">
+  <div class="modal" style="max-width:400px;">
+    <h2>
+      <span>Limites padrão por tipo de exame</span>
+      <button class="close-x" onclick="closeSettings()">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </h2>
+    <div id="settingsFields"></div>
+    <div style="font-size:12px;color:var(--slate);margin:2px 0 14px;">
+      Deixe em branco para não limitar. Esse é o limite usado todo dia — mas você pode alterar o limite de um dia específico clicando no ícone de lápis no topo de cada coluna.
+    </div>
+    <div class="modal-actions" style="justify-content:flex-end;">
+      <button type="button" class="btn btn-ghost" onclick="closeSettings()">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="saveSettings()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="dayLimitsOverlay">
+  <div class="modal" style="max-width:400px;">
+    <h2>
+      <span id="dayLimitsTitle">Limites do dia</span>
+      <button class="close-x" onclick="closeDayLimits()">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </h2>
+    <input type="hidden" id="dayLimitsDate">
+    <div id="dayLimitsFields"></div>
+    <div style="font-size:12px;color:var(--slate);margin:2px 0 14px;">
+      Deixe em branco para usar o limite padrão desse tipo de exame nesse dia.
+    </div>
+    <div class="modal-actions" style="justify-content:flex-end;">
+      <button type="button" class="btn btn-ghost" onclick="closeDayLimits()">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="saveDayLimits()">Salvar</button>
+    </div>
+  </div>
 </div>
 
 <div class="overlay" id="overlay">
@@ -306,13 +371,115 @@
 
 <script>
 const STORAGE_KEY = 'clinic_exam_schedule_v1';
+const SETTINGS_KEY = 'clinic_exam_schedule_settings_v1';
+const DAY_LIMITS_KEY = 'clinic_exam_schedule_day_limits_v1';
 const DAY_NAMES = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
 const TYPE_COLORS = {
   'Raio-X':'#C58A1F','Ultrassom':'#7A5FC1'
 };
 
 let appointments = loadData();
+let settings = loadSettings();
+let dayLimits = loadDayLimits();
 let currentMonday = getMonday(new Date());
+
+function loadSettings(){
+  let defaultLimits = {};
+  try{
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if(raw) defaultLimits = JSON.parse(raw).defaultLimits || {};
+  }catch(e){ console.error('Erro ao carregar configurações', e); }
+  return { defaultLimits };
+}
+function saveSettingsData(){
+  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
+  catch(e){ alert('Não foi possível salvar as configurações neste navegador.'); }
+}
+function loadDayLimits(){
+  try{
+    const raw = localStorage.getItem(DAY_LIMITS_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){ console.error('Erro ao carregar limites do dia', e); }
+  return {};
+}
+function saveDayLimitsData(){
+  try{ localStorage.setItem(DAY_LIMITS_KEY, JSON.stringify(dayLimits)); }
+  catch(e){ alert('Não foi possível salvar os limites do dia neste navegador.'); }
+}
+
+function openSettings(){
+  const wrap = document.getElementById('settingsFields');
+  wrap.innerHTML = Object.keys(TYPE_COLORS).map(type => `
+    <div class="field">
+      <label>${escapeHtml(type)} — limite por dia</label>
+      <input type="number" min="0" class="settings-type-input" data-type="${escapeHtml(type)}"
+        value="${settings.defaultLimits[type] ?? ''}" placeholder="Sem limite">
+    </div>
+  `).join('');
+  document.getElementById('settingsOverlay').classList.add('open');
+}
+function closeSettings(){ document.getElementById('settingsOverlay').classList.remove('open'); }
+function saveSettings(){
+  const inputs = document.querySelectorAll('.settings-type-input');
+  inputs.forEach(inp=>{
+    const type = inp.dataset.type;
+    const val = inp.value;
+    settings.defaultLimits[type] = val === '' ? null : Math.max(0, parseInt(val,10) || 0);
+  });
+  saveSettingsData();
+  closeSettings();
+  render();
+}
+
+function openDayLimits(dateStr){
+  document.getElementById('dayLimitsDate').value = dateStr;
+  const label = new Date(dateStr+'T00:00:00').toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long'});
+  document.getElementById('dayLimitsTitle').textContent = `Limites de ${label}`;
+  const overrides = dayLimits[dateStr] || {};
+  const wrap = document.getElementById('dayLimitsFields');
+  wrap.innerHTML = Object.keys(TYPE_COLORS).map(type => {
+    const defaultVal = settings.defaultLimits[type];
+    const placeholder = (defaultVal === null || defaultVal === undefined) ? 'Sem limite padrão' : `Padrão: ${defaultVal}`;
+    return `
+    <div class="field">
+      <label>${escapeHtml(type)} — limite só neste dia</label>
+      <input type="number" min="0" class="daylimits-type-input" data-type="${escapeHtml(type)}"
+        value="${overrides[type] ?? ''}" placeholder="${placeholder}">
+    </div>
+  `;
+  }).join('');
+  document.getElementById('dayLimitsOverlay').classList.add('open');
+}
+function closeDayLimits(){ document.getElementById('dayLimitsOverlay').classList.remove('open'); }
+function saveDayLimits(){
+  const dateStr = document.getElementById('dayLimitsDate').value;
+  const inputs = document.querySelectorAll('.daylimits-type-input');
+  const overrides = {};
+  let hasAny = false;
+  inputs.forEach(inp=>{
+    const type = inp.dataset.type;
+    const val = inp.value;
+    if(val !== ''){
+      overrides[type] = Math.max(0, parseInt(val,10) || 0);
+      hasAny = true;
+    }
+  });
+  if(hasAny){ dayLimits[dateStr] = overrides; }
+  else{ delete dayLimits[dateStr]; }
+  saveDayLimitsData();
+  closeDayLimits();
+  render();
+}
+
+function getEffectiveLimit(dateStr, type){
+  const override = dayLimits[dateStr]?.[type];
+  if(override !== undefined && override !== null) return override;
+  const def = settings.defaultLimits[type];
+  return (def === undefined) ? null : def;
+}
+function countActiveForDateType(dateStr, type, excludeId){
+  return appointments.filter(a => a.date === dateStr && a.type === type && a.status !== 'cancelado' && a.id !== excludeId).length;
+}
 
 function loadData(){
   try{
@@ -386,14 +553,31 @@ function render(){
     dayApts.sort((a,b)=> a.time.localeCompare(b.time));
 
     const col = document.createElement('div');
-    col.className = 'day-col' + (isToday ? ' is-today' : '');
+    const perType = Object.keys(TYPE_COLORS).map(type=>{
+      const count = countActiveForDateType(dayStr, type);
+      const limit = getEffectiveLimit(dayStr, type);
+      const full = limit !== null && count >= limit;
+      return { type, count, limit, full };
+    });
+    const isFull = perType.some(t=>t.full);
+    col.className = 'day-col' + (isToday ? ' is-today' : '') + (isFull ? ' is-full' : '');
 
-    const totalForDay = appointments.filter(a=>a.date===dayStr).length;
+    const chipsHtml = perType.map(t=>`
+      <div class="type-chip ${t.full?'chip-full':''}">
+        <span><span class="dot" style="background:${TYPE_COLORS[t.type]}"></span>${escapeHtml(t.type)}</span>
+        <span>${t.count}${t.limit!==null ? '/'+t.limit : ''}</span>
+      </div>
+    `).join('');
+
     col.innerHTML = `
       <div class="day-head">
+        <button class="day-edit-limits" title="Editar limites deste dia" onclick="openDayLimits('${dayStr}')">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 20h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
         <div class="day-name">${DAY_NAMES[i]}${isToday ? ' · Hoje' : ''}</div>
         <div class="day-date">${String(dayDate.getDate()).padStart(2,'0')}/${String(dayDate.getMonth()+1).padStart(2,'0')}</div>
-        <div class="day-count">${totalForDay} exame${totalForDay!==1?'s':''}</div>
+        <div class="type-limits">${chipsHtml}</div>
+        ${isFull ? '<div class="full-badge">Lotado</div>' : ''}
       </div>
       <div class="day-body" id="body-${i}"></div>
     `;
@@ -462,6 +646,17 @@ function saveAppointment(e){
     status: document.getElementById('fStatus').value,
     notes: document.getElementById('fNotes').value.trim(),
   };
+
+  const limit = getEffectiveLimit(data.date, data.type);
+  if(limit !== null && data.status !== 'cancelado'){
+    const activeCount = countActiveForDateType(data.date, data.type, id || undefined);
+    if(activeCount >= limit){
+      const dateLabel = new Date(data.date+'T00:00:00').toLocaleDateString('pt-BR');
+      const proceed = confirm(`${data.type} no dia ${dateLabel} já atingiu o limite de ${limit} exame${limit!==1?'s':''}. Deseja agendar mesmo assim?`);
+      if(!proceed) return;
+    }
+  }
+
   if(id){
     const idx = appointments.findIndex(a=>a.id===id);
     if(idx>-1) appointments[idx] = {...appointments[idx], ...data};
@@ -487,8 +682,14 @@ function deleteAppointment(){
 document.getElementById('overlay').addEventListener('click', (e)=>{
   if(e.target.id === 'overlay') closeModal();
 });
+document.getElementById('settingsOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'settingsOverlay') closeSettings();
+});
+document.getElementById('dayLimitsOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'dayLimitsOverlay') closeDayLimits();
+});
 document.addEventListener('keydown', (e)=>{
-  if(e.key === 'Escape') closeModal();
+  if(e.key === 'Escape'){ closeModal(); closeSettings(); closeDayLimits(); }
 });
 
 render();
